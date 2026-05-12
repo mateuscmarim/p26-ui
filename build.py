@@ -2,15 +2,16 @@
 """
 Bundle credentials-panel into a single inline-script index.html.
 
-Reads the dev-mode index.html (which references /js/*.js as separate files)
-and produces dist/index.html with:
+Reads template.html (the dev-mode source which references /js/*.js as
+separate files) and produces index.html (the committed deploy artifact)
+with:
 - deploy-header.js inlined as a <script>
 - All app JS concatenated, ES-import/export-stripped, wrapped in an IIFE,
   and minified via esbuild
 - css/styles.css inlined as a <style> tag
 
 Usage:
-    python build.py                     # produces dist/index.html only
+    python build.py                     # rebuild index.html
     python build.py --no-minify         # skip esbuild
     python build.py --copy-to-static    # also copy into Spring static folder for dev
 """
@@ -22,7 +23,8 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-DIST = ROOT / "dist"
+TEMPLATE = ROOT / "template.html"
+OUTPUT = ROOT / "index.html"
 STATIC_TARGET = (
     ROOT.parent / "java" / "parallel26" / "src" / "main" / "resources"
     / "static" / "credentials" / "index.html"
@@ -50,7 +52,7 @@ DEPLOY_HEADER = ROOT / "deploy-header.js"
 
 def _replace_or_die(html: str, old: str, new: str, label: str) -> str:
     if old not in html:
-        raise RuntimeError(f"index.html replacement target not found: {label}")
+        raise RuntimeError(f"template.html replacement target not found: {label}")
     return html.replace(old, new)
 
 
@@ -104,7 +106,7 @@ def minify(js: str) -> str:
 
 
 def build_html(*, skip_minify: bool = False) -> str:
-    html = (ROOT / "index.html").read_text()
+    html = TEMPLATE.read_text()
     header_js = DEPLOY_HEADER.read_text()
     if not skip_minify:
         header_js = minify(header_js)
@@ -138,18 +140,16 @@ def main():
     parser = argparse.ArgumentParser(description="Bundle credentials-panel for production")
     parser.add_argument("--no-minify", action="store_true", help="Skip esbuild minification")
     parser.add_argument("--copy-to-static", action="store_true",
-                        help="Also copy dist/index.html into the Spring static folder for dev")
+                        help="Also copy index.html into the Spring static folder for dev")
     args = parser.parse_args()
 
-    DIST.mkdir(exist_ok=True)
     html = build_html(skip_minify=args.no_minify)
-    out = DIST / "index.html"
-    out.write_text(html)
-    print(f"Built {out} ({len(html)} bytes)")
+    OUTPUT.write_text(html)
+    print(f"Built {OUTPUT} ({len(html)} bytes)")
 
     if args.copy_to_static:
         STATIC_TARGET.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(out, STATIC_TARGET)
+        shutil.copy2(OUTPUT, STATIC_TARGET)
         print(f"Copied to {STATIC_TARGET}")
 
 

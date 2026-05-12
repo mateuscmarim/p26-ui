@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credentials</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha384-1H217gwSVyLSIfaLxHbE7dRb3v4mYCKbpQvzx0cegeju1MVsGrX5xXxAvs/HgeFs" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="login-view" class="login-view">
+    <form id="login-form" class="login-form">
+      <h1>Credentials Tracker</h1>
+      <label for="login-email">Email</label>
+      <input id="login-email" type="email" autocomplete="username" required />
+      <label for="login-password">Password</label>
+      <input id="login-password" type="password" autocomplete="current-password" required />
+      <button type="submit" class="btn btn-primary">Sign in</button>
+      <div id="login-error" class="login-error" hidden></div>
+    </form>
+  </div>
+
+  <div id="app-view" class="app-view" hidden>
+    <aside id="sidebar" class="sidebar"></aside>
+    <main id="main">
+      <div id="dashboard-view" class="view"></div>
+      <div id="credentials-view" class="view" hidden></div>
+      <div id="audit-view" class="view" hidden></div>
+      <div id="locations-view" class="view" hidden></div>
+      <div id="ingest-view" class="view" hidden></div>
+    </main>
+  </div>
+
+  <div id="templates" hidden>
+    <div data-id="toast" class="toast"></div>
+    <div data-id="loading-state" class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading…</div>
+    </div>
+    <div data-id="empty-state" class="empty-state"></div>
+    <div data-id="modal-backdrop" class="modal-backdrop">
+      <div class="modal" data-id="modal-body"></div>
+    </div>
+    <div data-id="sidebar-shell" class="sidebar-shell">
+      <div class="sidebar-header">Credentials</div>
+      <nav class="sidebar-nav" data-id="nav"></nav>
+      <div class="sidebar-footer">
+        <span data-id="user-name"></span>
+        <button class="btn-link" data-id="logout">Sign out</button>
+      </div>
+    </div>
+    <button class="sidebar-btn" data-id="sidebar-btn">
+      <span class="sidebar-btn-label" data-id="label"></span>
+      <span class="sidebar-btn-badge" data-id="badge" hidden></span>
+    </button>
+
+    <div data-id="dashboard-shell">
+      <h2>Overview</h2>
+      <div class="dashboard-cards" data-id="cards"></div>
+      <section class="dashboard-charts">
+        <h3>Expiry distribution</h3>
+        <canvas data-id="expiry-chart" width="600" height="280"></canvas>
+      </section>
+      <section class="dashboard-reminders" data-id="reminders-section" hidden>
+        <h3>
+          Reminders
+          <button class="btn-link" data-id="show-reminders">View all</button>
+        </h3>
+        <ul class="reminders-list" data-id="reminders-inline"></ul>
+      </section>
+    </div>
+
+    <div data-id="dashboard-card" class="dashboard-card">
+      <div class="dashboard-card-label" data-id="label"></div>
+      <div class="dashboard-card-value" data-id="value"></div>
+    </div>
+
+    <div data-id="reminders-modal" class="modal">
+      <div class="modal-backdrop" data-id="backdrop"></div>
+      <div class="modal-body">
+        <header>
+          <h3>Recent reminders (7 days)</h3>
+          <button class="btn-link" data-id="close">Close</button>
+        </header>
+        <ul class="reminders-list" data-id="list"></ul>
+      </div>
+    </div>
+
+    <li data-id="reminder-item" class="reminder-item">
+      <div class="reminder-when" data-id="when"></div>
+      <div class="reminder-recipient" data-id="recipient"></div>
+      <div class="reminder-template" data-id="template"></div>
+    </li>
+
+    <div data-id="credentials-shell">
+      <header class="view-header">
+        <h2>Credentials</h2>
+        <div class="filters" data-id="filters">
+          <input type="search" placeholder="Search providers, IDs..." data-id="filter-q" />
+          <select data-id="filter-status">
+            <option value="">All statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="EXPIRING_SOON">Expiring soon</option>
+            <option value="EXPIRED">Expired</option>
+            <option value="UNKNOWN">Unknown</option>
+          </select>
+          <select data-id="filter-type">
+            <option value="">All types</option>
+          </select>
+          <select data-id="filter-location">
+            <option value="">All locations</option>
+          </select>
+          <select data-id="filter-provider">
+            <option value="">All providers</option>
+          </select>
+        </div>
+      </header>
+      <div class="credentials-body">
+        <div class="credentials-list" data-id="list-host"></div>
+        <div class="credentials-detail" data-id="detail-host"></div>
+      </div>
+      <footer class="pagination" data-id="pagination">
+        <button class="btn-link" data-id="prev">Previous</button>
+        <span data-id="page-info"></span>
+        <button class="btn-link" data-id="next">Next</button>
+      </footer>
+    </div>
+
+    <div data-id="credential-row" class="credential-row">
+      <div class="credential-row-main">
+        <span class="credential-row-provider" data-id="provider"></span>
+        <span class="credential-row-type" data-id="type"></span>
+      </div>
+      <div class="credential-row-meta">
+        <span data-id="location" hidden></span>
+        <span data-id="expiry"></span>
+        <span data-id="badge-host"></span>
+      </div>
+    </div>
+
+    <div data-id="credential-detail" class="credential-detail-shell">
+      <header>
+        <h3 data-id="header-title"></h3>
+        <span data-id="header-badge"></span>
+      </header>
+      <form class="credential-form" data-id="form">
+        <label>Credential type
+          <select data-id="field-type"></select>
+        </label>
+        <label>Issuing authority
+          <input type="text" data-id="field-issuer" />
+        </label>
+        <label>Identifier
+          <input type="text" data-id="field-identifier" />
+        </label>
+        <label>Issued
+          <input type="date" data-id="field-issued" />
+        </label>
+        <label>Expires
+          <input type="date" data-id="field-expires" />
+        </label>
+        <label>Notes
+          <textarea data-id="field-notes" rows="3"></textarea>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" data-id="save">Save</button>
+          <button type="button" class="btn" data-id="cancel">Cancel</button>
+          <span class="form-status" data-id="form-status"></span>
+        </div>
+      </form>
+      <section class="credential-documents">
+        <h4>Documents</h4>
+        <ul data-id="documents"></ul>
+      </section>
+      <section class="credential-audit" data-id="audit-section" hidden>
+        <h4>Recent audit</h4>
+        <ul data-id="audit"></ul>
+      </section>
+    </div>
+
+    <li data-id="document-item">
+      <a data-id="link" target="_blank" rel="noopener noreferrer"></a>
+      <span data-id="meta"></span>
+    </li>
+
+    <li data-id="audit-item">
+      <span data-id="when"></span>
+      <span data-id="actor"></span>
+      <span data-id="action"></span>
+    </li>
+
+    <div data-id="review-shell" class="review-shell">
+      <header class="review-header">
+        <h3>Review extracted credential</h3>
+        <span class="review-confidence" data-id="confidence"></span>
+      </header>
+      <div class="review-body">
+        <section class="review-source">
+          <h4>Source document</h4>
+          <pre class="review-source-text" data-id="source-text"></pre>
+        </section>
+        <section class="review-fields">
+          <h4>Fields</h4>
+          <form data-id="form" class="review-form">
+            <label>Provider
+              <input type="text" data-id="field-provider" />
+              <span class="diff-flag" data-id="diff-provider" hidden>changed</span>
+            </label>
+            <label>Credential type
+              <input type="text" data-id="field-type" />
+              <span class="diff-flag" data-id="diff-type" hidden>changed</span>
+            </label>
+            <label>Issuing authority
+              <input type="text" data-id="field-issuer" />
+              <span class="diff-flag" data-id="diff-issuer" hidden>changed</span>
+            </label>
+            <label>Identifier
+              <input type="text" data-id="field-identifier" />
+              <span class="diff-flag" data-id="diff-identifier" hidden>changed</span>
+            </label>
+            <label>Issued
+              <input type="date" data-id="field-issued" />
+              <span class="diff-flag" data-id="diff-issued" hidden>changed</span>
+            </label>
+            <label>Expires
+              <input type="date" data-id="field-expires" />
+              <span class="diff-flag" data-id="diff-expires" hidden>changed</span>
+            </label>
+          </form>
+        </section>
+      </div>
+      <footer class="review-actions">
+        <button class="btn btn-primary" data-id="confirm">Confirm</button>
+        <button class="btn" data-id="reject">Reject</button>
+        <input type="text" placeholder="Reject reason (optional)" data-id="reject-reason" />
+      </footer>
+    </div>
+
+    <div data-id="ingest-shell">
+      <header class="view-header">
+        <h2>Ingest Documents</h2>
+      </header>
+      <div class="ingest-dropzone" data-id="dropzone">
+        <p>Drop a PDF or image here, or</p>
+        <label class="btn btn-primary">
+          Choose file
+          <input type="file" accept="application/pdf,image/*" data-id="file-input" hidden />
+        </label>
+      </div>
+      <div class="ingest-status" data-id="status-strip" hidden>
+        <span data-id="status-text"></span>
+      </div>
+      <div class="ingest-review-host" data-id="review-host">
+        <div class="empty-state">After upload, extracted credentials appear here for review.</div>
+      </div>
+    </div>
+
+    <div data-id="audit-shell">
+      <header class="view-header">
+        <h2>Audit Log</h2>
+        <div class="filters">
+          <input type="search" placeholder="Filter by actor" data-id="filter-actor" />
+          <select data-id="filter-action">
+            <option value="">All actions</option>
+            <option value="CREATE">Create</option>
+            <option value="UPDATE">Update</option>
+            <option value="DELETE">Delete</option>
+            <option value="REMINDER_SENT">Reminder sent</option>
+          </select>
+          <label class="filter-date">From <input type="date" data-id="filter-from" /></label>
+          <label class="filter-date">To <input type="date" data-id="filter-to" /></label>
+        </div>
+      </header>
+      <table class="audit-table">
+        <thead>
+          <tr><th>When</th><th>Actor</th><th>Action</th><th>Credential</th><th>Detail</th></tr>
+        </thead>
+        <tbody data-id="rows"></tbody>
+      </table>
+      <div class="empty-state" data-id="empty" hidden>No audit entries match these filters.</div>
+      <footer class="pagination">
+        <button class="btn-link" data-id="load-more">Load more</button>
+      </footer>
+    </div>
+    <table hidden><tbody>
+      <tr data-id="audit-row">
+        <td data-id="when"></td>
+        <td data-id="actor"></td>
+        <td data-id="action"></td>
+        <td data-id="credential"></td>
+        <td data-id="detail"></td>
+      </tr>
+    </tbody></table>
+
+    <div data-id="locations-shell">
+      <header class="view-header">
+        <h2>Locations &amp; Providers</h2>
+      </header>
+      <div class="locations-body">
+        <aside class="locations-list">
+          <h3>Locations
+            <button class="btn-link" data-id="add-location">+ Add</button>
+          </h3>
+          <ul data-id="locations-list"></ul>
+          <h3>Providers
+            <button class="btn-link" data-id="add-provider">+ Add</button>
+          </h3>
+          <ul data-id="providers-list"></ul>
+        </aside>
+        <section class="locations-detail" data-id="detail-host">
+          <div class="empty-state">Select a location or provider to edit, or add a new one.</div>
+        </section>
+      </div>
+    </div>
+    <li data-id="locations-row" class="locations-row">
+      <button class="locations-row-name" data-id="name"></button>
+      <button class="locations-row-delete" data-id="delete" title="Delete">×</button>
+    </li>
+    <form data-id="locations-form" class="locations-form">
+      <h3 data-id="form-title"></h3>
+      <label>Name <input type="text" data-id="field-name" /></label>
+      <label>External ID <input type="text" data-id="field-external-id" /></label>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" data-id="save">Save</button>
+        <span class="form-status" data-id="form-status"></span>
+      </div>
+    </form>
+  </div>
+
+  <script src="/js/util.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

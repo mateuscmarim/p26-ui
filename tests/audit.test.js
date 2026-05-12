@@ -101,10 +101,10 @@ describe("createAudit", () => {
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-describe("production index.html templates", () => {
+describe("template.html templates", () => {
   it("places audit-row inside a <table> so the parser preserves it", () => {
     const html = readFileSync(
-      resolve(__dirname, "..", "index.html"),
+      resolve(__dirname, "..", "template.html"),
       "utf8",
     );
     document.body.innerHTML = html;

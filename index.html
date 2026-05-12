@@ -4,7 +4,992 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Credentials</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+/* ── CSS Custom Properties ─────────────────────────────── */
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-elevated: #273449;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --accent-bg: rgba(129, 140, 248, 0.12);
+  --success: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.12);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --radius: 6px;
+  --radius-lg: 10px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --sidebar-width: 220px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4 { font-weight: 600; color: var(--text-primary); }
+h1 { font-size: 22px; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 5px; border: 2px solid var(--bg-primary); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+[hidden] { display: none !important; }
+
+/* ── Login view ─────────────────────────────────────────── */
+.login-view {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-form {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+}
+
+.login-form h1 { text-align: center; margin-bottom: 12px; }
+
+.login-form label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.login-form input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.login-form input:focus { outline: none; border-color: var(--accent); }
+
+.login-form button { margin-top: 8px; }
+
+.login-error {
+  padding: 8px 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* ── Top-level app layout ───────────────────────────────── */
+.app-view {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#main {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.sidebar-header {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.02em;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: auto;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+}
+
+.sidebar-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.sidebar-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sidebar-btn-label { flex: 1; }
+
+.sidebar-btn-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.sidebar-footer .btn-link {
+  align-self: flex-start;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.sidebar-footer .btn-link:hover { color: var(--text-primary); }
+
+/* ── Buttons ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+.btn:hover { background: var(--bg-elevated); }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b0f1a;
+  font-weight: 600;
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: var(--radius);
+}
+.btn-link:hover { background: var(--accent-bg); text-decoration: none; }
+
+button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── View headers ───────────────────────────────────────── */
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.view-header h2 { margin: 0; }
+
+/* ── Filters row ────────────────────────────────────────── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filters input,
+.filters select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  min-width: 140px;
+}
+.filters input:focus,
+.filters select:focus { outline: none; border-color: var(--accent); }
+
+.filters input[type="search"] { min-width: 220px; }
+.filters input[type="date"] { min-width: 130px; }
+
+.filter-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.filter-date input[type="date"] {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ── Dashboard ──────────────────────────────────────────── */
+[data-id="dashboard-shell"],
+#dashboard-view > * {
+  /* templates use this id when rendered into #dashboard-view */
+}
+
+#dashboard-view {
+  padding: 24px;
+  gap: 24px;
+}
+#dashboard-view > h2 { margin-bottom: 4px; }
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashboard-card-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dashboard-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.dashboard-charts,
+.dashboard-reminders {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.dashboard-charts h3,
+.dashboard-reminders h3 {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dashboard-charts canvas { max-width: 100%; height: auto; }
+
+@media (max-width: 1100px) { .dashboard-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .dashboard-cards { grid-template-columns: 1fr; } }
+
+/* ── Credentials list view ──────────────────────────────── */
+#credentials-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.credentials-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.5fr);
+  gap: 1px;
+  background: var(--border);
+  min-height: 0;
+}
+
+.credentials-list,
+.credentials-detail {
+  background: var(--bg-primary);
+  overflow: auto;
+  padding: 8px;
+}
+
+.credentials-list { padding: 0; }
+
+.credential-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.credential-row:hover { background: var(--bg-secondary); }
+.credential-row.selected { background: var(--accent-bg); border-left: 3px solid var(--accent); padding-left: 15px; }
+
+.credential-row-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.credential-row-provider { font-weight: 600; color: var(--text-primary); }
+
+.credential-row-type {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.credential-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.credential-row-meta > span:not(:last-child)::after {
+  content: "·";
+  margin-left: 10px;
+  color: var(--text-muted);
+}
+
+/* ── Credential detail panel ────────────────────────────── */
+.credential-detail-shell {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.credential-detail-shell > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.credential-detail-shell > header h3 { margin: 0; font-size: 18px; }
+
+.credential-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+
+.credential-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.credential-form input,
+.credential-form textarea,
+.credential-form select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.credential-form input:focus,
+.credential-form textarea:focus,
+.credential-form select:focus { outline: none; border-color: var(--accent); }
+
+.credential-form textarea { resize: vertical; min-height: 60px; }
+
+.credential-form label:has(textarea) { grid-column: 1 / -1; }
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.form-status { font-size: 13px; color: var(--text-secondary); }
+
+.credential-documents,
+.credential-audit { display: flex; flex-direction: column; gap: 10px; }
+.credential-documents ul,
+.credential-audit ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+
+.credential-documents li,
+.credential-audit li {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+.credential-documents li a { font-weight: 500; }
+
+/* ── Pagination ─────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ── Badges ─────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+}
+
+.badge-active { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+.badge-expired { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.badge-warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning); }
+.badge-unknown { background: var(--bg-tertiary); color: var(--text-secondary); border-color: var(--border-strong); }
+
+.confidence-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.dot-high { background: var(--success); }
+.dot-medium { background: var(--warning); }
+.dot-low { background: var(--danger); }
+.dot-unknown { background: var(--text-muted); }
+
+/* ── Audit table ────────────────────────────────────────── */
+#audit-view { padding: 0; }
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.audit-table thead th {
+  text-align: left;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-strong);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.audit-table tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.audit-table tbody tr:hover { background: var(--bg-secondary); }
+
+/* ── Locations & Providers view ─────────────────────────── */
+.locations-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 2fr);
+  gap: 1px;
+  background: var(--border);
+  min-height: 0;
+}
+
+.locations-list,
+.locations-detail {
+  background: var(--bg-primary);
+  overflow: auto;
+  padding: 16px 20px;
+}
+
+.locations-list h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  text-transform: none;
+  font-size: 14px;
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+.locations-list h3:first-of-type { margin-top: 0; }
+
+.locations-list ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.locations-row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+.locations-row:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.locations-row.selected { background: var(--accent-bg); color: var(--accent); }
+.locations-row.selected .locations-row-name { color: var(--accent); font-weight: 600; }
+
+.locations-row-name {
+  flex: 1;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-family: inherit;
+}
+
+.locations-row-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.locations-row:hover .locations-row-delete { opacity: 1; }
+.locations-row-delete:hover { background: var(--danger-bg); color: var(--danger); }
+
+.locations-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+}
+
+.locations-form h3 { margin-bottom: 4px; text-transform: none; color: var(--text-primary); letter-spacing: 0; }
+
+.locations-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.locations-form input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.locations-form input:focus { outline: none; border-color: var(--accent); }
+
+/* ── Ingest view ────────────────────────────────────────── */
+#ingest-view { padding: 24px; gap: 20px; }
+
+.ingest-dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-secondary);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.ingest-dropzone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--text-primary);
+}
+
+.ingest-status {
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ingest-review-host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ingest-review-slot {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.ingest-done {
+  padding: 12px;
+  background: var(--success-bg);
+  border: 1px solid var(--success);
+  border-radius: var(--radius);
+  color: var(--success);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── Review (side-by-side) ──────────────────────────────── */
+.review-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.review-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) { .review-body { grid-template-columns: 1fr; } }
+
+.review-source-text {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text-secondary);
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.review-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: relative;
+}
+
+.review-form input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.diff-flag {
+  position: absolute;
+  right: 6px;
+  top: 0;
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.review-actions input[type="text"] {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+/* ── Toast / loading / empty / modal ────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  padding: 12px 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  max-width: 360px;
+  animation: toast-in 0.2s ease-out;
+}
+
+.toast-success { border-left: 4px solid var(--success); }
+.toast-error { border-left: 4px solid var(--danger); }
+.toast-info { border-left: 4px solid var(--accent); }
+
+@keyframes toast-in {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.loading-text { font-size: 13px; }
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.empty-state-message { font-size: 14px; color: var(--text-secondary); }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  padding: 24px;
+}
+
+.modal,
+.modal-body {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+
+.modal header,
+.modal-body header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Reminders list ─────────────────────────────────────── */
+.reminders-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reminder-item {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  align-items: center;
+}
+
+.reminder-when { color: var(--text-muted); font-size: 12px; }
+.reminder-recipient { color: var(--text-primary); font-weight: 500; }
+.reminder-template { color: var(--text-secondary); font-size: 12px; }
+
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha384-1H217gwSVyLSIfaLxHbE7dRb3v4mYCKbpQvzx0cegeju1MVsGrX5xXxAvs/HgeFs" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
 </head>
@@ -328,7 +1313,13 @@
     </form>
   </div>
 
-  <script src="/js/util.js"></script>
-  <script type="module" src="/js/app.js"></script>
+  <script>
+(function(){if(window.location.protocol==="http:"&&window.location.hostname!=="localhost"){var t=window.location;window.location.href="https://"+t.hostname+t.pathname+t.search}var n=window.settings||(window.settings={});n.apiBase==null&&(n.apiBase="https://www.p26-intelligence.com")})();
+
+  </script>
+  <script>
+(function(){"use strict";const R={};function V(e){return e.startsWith("[")?e:`[data-id="${e}"]`}function Y(e){const i=V(e);if(!R[i]){const a=document.querySelector(`#templates ${i}`);if(!a)return null;R[i]=$(a)}return R[i]}const g={copyTemplate(e){const i=Y(e);if(!i)throw new Error(`Template not found: ${e}`);return i.clone(!0,!0)},reset(){Object.keys(R).forEach(e=>delete R[e])}};typeof window<"u"&&(window.TemplateUtil=g);const G={ACTIVE:"Active",EXPIRING_SOON:"Expiring soon",EXPIRED:"Expired",MISSING:"Missing"},q={high:"High",medium:"Medium",low:"Low"},X=new Set(["DEA","BLS","CPR","NPI","OSHA","HIPAA","PA","MD","DDS"]);function k(e,i){if(!e)return null;const a=new Date(e+"T00:00:00"),o=i?new Date(i+"T00:00:00"):new Date;return o.setHours(0,0,0,0),Math.round((a-o)/864e5)}function K(e,i){if(!e)return"\u2014";const a=k(e,i);return a===0?"Expires today":a>0?`Expires in ${a} day${a===1?"":"s"}`:`Expired ${-a} day${a===-1?"":"s"} ago`}function Ie(e){return G[e]||e||""}function Te(e){return e==null?"Unknown":q[e]||"Unknown"}function U(e){return e==null?"":e.split("_").map(i=>{const a=i.toUpperCase();return X.has(a)?a:i.charAt(0).toUpperCase()+i.slice(1).toLowerCase()}).join(" ")}const W=new Set([408,429,502,503,504]),O=2,Z=1e3,Q=["cred_token","cred_display_name","cred_user_id","cred_email"];function ee(e){return e.replace(/_([a-z])/g,(i,a)=>a.toUpperCase())}function te(e){return e.replace(/([a-z0-9])([A-Z])/g,"$1_$2").toLowerCase()}function _(e,i){if(Array.isArray(e))return e.map(a=>_(a,i));if(e!==null&&typeof e=="object"&&e.constructor===Object){const a={};for(const[o,p]of Object.entries(e))a[i(o)]=_(p,i);return a}return e}const ne=e=>_(e,ee),P=e=>_(e,te);function ie(){const e=window.settings&&window.settings.apiBase||"";function i(){return localStorage.getItem("cred_token")}function a(){Q.forEach(n=>localStorage.removeItem(n))}function o(n){return new Promise(t=>setTimeout(t,n))}function p(n){return n.status===0||W.has(n.status)}async function u(n,t,d){const c={"Content-Type":"application/json"},l=i();l&&(c.Authorization=`Bearer ${l}`);const y={method:n,url:`${e}${t}`,headers:c,dataType:"json"};d!=null&&(y.data=JSON.stringify(P(d)));let N;for(let A=0;A<=O;A++)try{const S=await $.ajax(y);return ne(S)}catch(S){if(S.status===401){const v=!!i();throw a(),v&&window.dispatchEvent(new CustomEvent("auth:expired")),new Error("Unauthorized")}if(N=S,!p(S)||A===O)break;await o(Z)}throw N}function w(n){if(!n)return"";const t=P(n||{}),d=Object.entries(t).filter(([,c])=>c!=null&&c!=="").map(([c,l])=>encodeURIComponent(c)+"="+encodeURIComponent(l)).join("&");return d?"?"+d:""}const s=(n,t)=>u("GET",n+w(t)),r=(n,t)=>u("POST",n,t),f=(n,t)=>u("PUT",n,t),m=n=>u("DELETE",n);function h(n,t,d="file"){const c=new FormData;c.append(d,t,t.name);const l={},y=i();return y&&(l.Authorization=`Bearer ${y}`),$.ajax({method:"POST",url:`${e}${n}`,headers:l,data:c,processData:!1,contentType:!1,dataType:"json"})}return{get:s,post:r,put:f,delete:m,login:({email:n,password:t})=>r("/api/auth/login",{email:n,password:t}),credentials:{list:n=>s("/api/credentials/credentials",n),get:n=>s(`/api/credentials/credentials/${encodeURIComponent(n)}`),update:(n,t)=>f(`/api/credentials/credentials/${encodeURIComponent(n)}`,t),remove:n=>m(`/api/credentials/credentials/${encodeURIComponent(n)}`)},locations:{list:n=>s("/api/credentials/locations",n),get:n=>s(`/api/credentials/locations/${encodeURIComponent(n)}`),create:n=>r("/api/credentials/locations",n),update:(n,t)=>f(`/api/credentials/locations/${encodeURIComponent(n)}`,t),remove:n=>m(`/api/credentials/locations/${encodeURIComponent(n)}`)},providers:{list:n=>s("/api/credentials/providers",n),get:n=>s(`/api/credentials/providers/${encodeURIComponent(n)}`),create:n=>r("/api/credentials/providers",n),update:(n,t)=>f(`/api/credentials/providers/${encodeURIComponent(n)}`,t),remove:n=>m(`/api/credentials/providers/${encodeURIComponent(n)}`)},documents:{listForCredential:n=>s(`/api/credentials/credentials/${encodeURIComponent(n)}/documents`),downloadUrl:n=>`${e}/api/credentials/documents/${encodeURIComponent(n)}/download`,upload:n=>h("/api/credentials/documents",n)},ingest:{upload:n=>h("/api/credentials/ingest",n),status:n=>s(`/api/credentials/ingest/${encodeURIComponent(n)}`),confirm:(n,t)=>r(`/api/credentials/ingest/items/${encodeURIComponent(n)}/confirm`,t),reject:(n,t)=>r(`/api/credentials/ingest/items/${encodeURIComponent(n)}/reject`,{reason:t})},audit:{list:n=>s("/api/credentials/audit",n),listForCredential:n=>s(`/api/credentials/credentials/${encodeURIComponent(n)}/audit`)},reminders:{recent:n=>s("/api/credentials/reminders/recent",{days:n})}}}const x={token:"cred_token",name:"cred_display_name",userId:"cred_user_id",email:"cred_email"};function ae({api:e,$form:i,$error:a}){let o=null;function p(){return localStorage.getItem(x.token)}function u(){return localStorage.getItem(x.name)||""}function w(){return localStorage.getItem(x.userId)}function s(){return localStorage.getItem(x.email)}function r(){Object.values(x).forEach(m=>localStorage.removeItem(m))}function f({token:m,displayName:h,userId:n,email:t}){localStorage.setItem(x.token,m),h&&localStorage.setItem(x.name,h),n!=null&&localStorage.setItem(x.userId,String(n)),t&&localStorage.setItem(x.email,t)}return i&&i.length&&i.on("submit",async m=>{m.preventDefault(),a?.hide();const h=i.find("#login-email").val()?.trim(),n=i.find("#login-password").val();if(!h||!n){a?.text("Please enter your email and password.").show();return}const t=i.find('button[type="submit"]'),d=t.text();t.prop("disabled",!0).text("Signing in\u2026");try{const c=await e.login({email:h,password:n});f({token:c.token,displayName:c.displayName,userId:c.userId,email:h}),typeof o=="function"&&o(c.displayName)}catch(c){const l=c?.responseJSON?.message||"Invalid credentials.";a?.text(l).show()}finally{t.prop("disabled",!1).text(d)}}),{getStoredToken:p,getDisplayName:u,getUserId:w,getEmail:s,logout:r,onLoginSuccess:m=>{o=m}}}function E(e,i="info",a=3e3){const o=$("<div>").addClass("toast").addClass(`toast-${i}`).text(e);$(document.body).append(o),setTimeout(()=>o.remove(),a)}function be(){return $("<div>").addClass("spinner")}function Ae({message:e,actionLabel:i,onAction:a}){const o=$("<div>").addClass("empty-state");if($("<div>").addClass("empty-state-message").text(e).appendTo(o),i){const p=$("<button>").addClass("btn btn-primary").text(i).on("click",()=>{typeof a=="function"&&a()});o.append(p)}return o}function j(e,i=new Date().toISOString().slice(0,10)){const a=$("<span>").addClass("badge");if(!e)return a.addClass("badge-unknown").text("Unknown");const o=k(e,i);return o<0?a.addClass("badge-expired").text("Expired"):o<=30?a.addClass("badge-warning").text(`Expires in ${o}d`):a.addClass("badge-active").text("Active")}function Re(e){const i=$("<span>").addClass("confidence-dot");return e==null?i.addClass("dot-unknown"):e>=.8?i.addClass("dot-high"):e>=.5?i.addClass("dot-medium"):i.addClass("dot-low")}const B=[["provider","providerName"],["type","credentialType"],["issuer","issuingAuthority"],["identifier","identifier"],["issued","issuedAt"],["expires","expiresAt"]];function M({$holder:e,extracted:i,existing:a,documentText:o,confidence:p,onConfirm:u,onReject:w}){const s=g.copyTemplate("review-shell");return p!=null&&s.find('[data-id="confidence"]').text(`Confidence: ${(p*100).toFixed(0)}%`),s.find('[data-id="source-text"]').text(o||""),B.forEach(([r,f])=>{const m=i?.[f];m!=null&&s.find(`[data-id="field-${r}"]`).val(m),a&&a[f]!=null&&a[f]!==m&&s.find(`[data-id="diff-${r}"]`).prop("hidden",!1)}),s.find('[data-id="confirm"]').on("click",()=>{const r={};B.forEach(([f,m])=>{const h=s.find(`[data-id="field-${f}"]`).val();r[m]=h===""?null:h}),typeof u=="function"&&u(r)}),s.find('[data-id="reject"]').on("click",()=>{const r=s.find('[data-id="reject-reason"]').val()?.trim()||"";typeof w=="function"&&w(r)}),e.empty().append(s),{$shell:s}}typeof window<"u"&&(window.createSideBySideReview=M);const de=[{id:"dashboard",label:"Dashboard"},{id:"credentials",label:"Credentials"},{id:"audit",label:"Audit"},{id:"locations",label:"Locations & Providers"},{id:"ingest",label:"Ingest"}];function oe({$holder:e,displayName:i,onViewChange:a,onLogout:o}){const p=g.copyTemplate("sidebar-shell");p.find('[data-id="user-name"]').text(i||""),p.find('[data-id="logout"]').on("click",()=>{typeof o=="function"&&o()});const u=p.find('[data-id="nav"]'),w={};return de.forEach(({id:s,label:r})=>{const f=g.copyTemplate("sidebar-btn");f.find('[data-id="label"]').text(r),f.on("click",()=>{u.find(".sidebar-btn").removeClass("active"),f.addClass("active"),typeof a=="function"&&a(s)}),s==="dashboard"&&f.addClass("active"),w[s]=f,u.append(f)}),e.empty().append(p),window.addEventListener("credentials:counts",s=>{const r=s?.detail?.expiringSoon??0,f=w.credentials.find('[data-id="badge"]');r>0?f.text(String(r)).prop("hidden",!1):f.prop("hidden",!0)}),{setActive:s=>w[s]?.trigger("click")}}const se=5;async function re({$holder:e,api:i,today:a}){const o=g.copyTemplate("dashboard-shell");e.empty().append(o);const p=a||new Date().toISOString().slice(0,10),[u,w]=await Promise.all([i.credentials.list({limit:500}),i.reminders.recent(7).catch(()=>({items:[]}))]),s=u.items||[],r=w.items||[],f=s.length,m=s.filter(d=>{if(!d.expiresAt)return!1;const c=k(d.expiresAt,p);return c>=0&&c<=30}).length,h=s.filter(d=>d.status==="EXPIRED").length,n=r.filter(d=>(d.sentAt?d.sentAt.slice(0,10):null)===p).length,t=o.find('[data-id="cards"]');[["Total",f],["Expiring (30d)",m],["Expired",h],["Reminders today",n]].forEach(([d,c])=>{const l=g.copyTemplate("dashboard-card");l.find('[data-id="label"]').text(d),l.find('[data-id="value"]').text(c),t.append(l)}),window.dispatchEvent(new CustomEvent("credentials:counts",{detail:{expiringSoon:m}})),ce(o.find('[data-id="expiry-chart"]')[0],s,p),le(o,r),o.find('[data-id="show-reminders"]').on("click",async()=>{const d=await i.reminders.recent(7);fe(d.items||[])})}function le(e,i){const a=e.find('[data-id="reminders-section"]'),o=e.find('[data-id="reminders-inline"]');if(o.empty(),!i.length){a.prop("hidden",!0);return}a.prop("hidden",!1),i.slice(0,se).forEach(p=>{const u=g.copyTemplate("reminder-item").addClass("reminder-item");u.find('[data-id="when"]').addClass("reminder-when").text(new Date(p.sentAt).toLocaleString()),u.find('[data-id="recipient"]').addClass("reminder-recipient").text(p.recipientEmail||""),u.find('[data-id="template"]').addClass("reminder-template").text(p.templateName||""),o.append(u)})}function ce(e,i,a){if(!e||typeof window.Chart!="function")return;const o={Expired:{},"0-30d":{},"31-90d":{},"90d+":{}};i.forEach(w=>{const s=w.credentialType||"Other";let r="90d+";if(!w.expiresAt)r="Expired";else{const f=k(w.expiresAt,a);f<0?r="Expired":f<=30?r="0-30d":f<=90&&(r="31-90d")}o[r][s]=(o[r][s]||0)+1});const u=Array.from(new Set(i.map(w=>w.credentialType||"Other"))).sort().map(w=>({label:U(w),data:Object.keys(o).map(s=>o[s][w]||0)}));new window.Chart(e,{type:"bar",data:{labels:Object.keys(o),datasets:u},options:{responsive:!1,scales:{x:{stacked:!0},y:{stacked:!0}}}})}function fe(e){const i=g.copyTemplate("reminders-modal"),a=i.find('[data-id="list"]').addClass("reminders-list");e.length===0?a.append($("<li>").text("No reminders sent in this window.")):e.forEach(p=>{const u=g.copyTemplate("reminder-item").addClass("reminder-item");u.find('[data-id="when"]').addClass("reminder-when").text(new Date(p.sentAt).toLocaleString()),u.find('[data-id="recipient"]').addClass("reminder-recipient").text(p.recipientEmail||""),u.find('[data-id="template"]').addClass("reminder-template").text(p.templateName||""),a.append(u)});function o(){i.remove()}i.find('[data-id="close"]').on("click",o),i.find('[data-id="backdrop"]').on("click",o),$(document.body).append(i)}typeof window<"u"&&(window.createDashboard=re);const L=25,pe=350,F=[{value:"STATE_DENTAL_LICENSE",label:"State Dental License"},{value:"DEA_REGISTRATION",label:"DEA Registration"},{value:"BLS_CERTIFICATION",label:"BLS Certification"},{value:"XRAY_REGISTRATION",label:"X-Ray Registration"},{value:"SEDATION_PERMIT",label:"Sedation Permit"},{value:"BIOWASTE_CONTRACT",label:"Biowaste Contract"},{value:"BUSINESS_LICENSE",label:"Business License"},{value:"MALPRACTICE_INSURANCE",label:"Malpractice Insurance"},{value:"OTHER",label:"Other"}];async function ue({$holder:e,api:i}){const a=g.copyTemplate("credentials-shell");e.empty().append(a);const o={page:0,filters:{q:"",status:"",type:"",locationId:"",providerId:""},selectedId:null};await p(),w(),s(),await r();async function p(){const[t,d]=await Promise.all([i.locations.list({limit:200}),i.providers.list({limit:500})]);u(a.find('[data-id="filter-location"]'),t.items,"id","name"),u(a.find('[data-id="filter-provider"]'),d.items,"id","name"),u(a.find('[data-id="filter-type"]'),F,"value","label")}function u(t,d,c,l){d.forEach(y=>{t.append($("<option>").attr("value",y[c]).text(y[l]))})}function w(){let t=null;a.find('[data-id="filter-q"]').on("input",function(){const d=$(this).val();clearTimeout(t),t=setTimeout(()=>{o.filters.q=d,o.page=0,r()},pe)}),[["filter-status","status"],["filter-type","type"],["filter-location","locationId"],["filter-provider","providerId"]].forEach(([d,c])=>{a.find(`[data-id="${d}"]`).on("change",function(){o.filters[c]=$(this).val(),o.page=0,r()})})}function s(){a.find('[data-id="prev"]').on("click",()=>{o.page>0&&(o.page-=1,r())}),a.find('[data-id="next"]').on("click",()=>{o.page+=1,r()})}async function r(){const t={...o.filters,offset:o.page*L,limit:L},d=await i.credentials.list(t);f(d.items||[]),m(d.total??d.items?.length??0)}function f(t){const d=a.find('[data-id="list-host"]');if(d.empty(),t.length===0){d.append($("<div>").addClass("empty-state").text("No credentials match these filters."));return}t.forEach(c=>{const l=g.copyTemplate("credential-row");l.addClass("credential-row"),l.find('[data-id="provider"]').text(c.providerName||"\u2014"),l.find('[data-id="type"]').text(U(c.credentialType)||"\u2014");const y=l.find('[data-id="location"]');c.locationName&&y.text(c.locationName).prop("hidden",!1),l.find('[data-id="expiry"]').text(K(c.expiresAt)),l.find('[data-id="badge-host"]').append(j(c.expiresAt)),l.on("click",()=>h(c.id)),c.id===o.selectedId&&l.addClass("selected"),d.append(l)})}function m(t){const d=o.page*L+1,c=Math.min(t,(o.page+1)*L);a.find('[data-id="page-info"]').text(`${d}-${c} of ${t}`)}async function h(t){o.selectedId=t,a.find(".credential-row").removeClass("selected");const[d,c,l]=await Promise.all([i.credentials.get(t),i.documents.listForCredential(t).catch(()=>({items:[]})),i.audit.listForCredential(t).catch(()=>({items:[]}))]);n(d,c.items||[],l.items||[])}function n(t,d,c){const l=g.copyTemplate("credential-detail");l.addClass("credential-detail-shell");const y=U(t.credentialType);l.find('[data-id="header-title"]').text([t.providerName,y].filter(Boolean).join(" \u2014 ")),l.find('[data-id="header-badge"]').append(j(t.expiresAt));const N=l.find('[data-id="field-type"]');F.forEach(v=>{N.append($("<option>").attr("value",v.value).text(v.label))}),N.val(t.credentialType||""),l.find('[data-id="field-issuer"]').val(t.issuingAuthority||""),l.find('[data-id="field-identifier"]').val(t.identifier||""),l.find('[data-id="field-issued"]').val(t.issuedAt||""),l.find('[data-id="field-expires"]').val(t.expiresAt||""),l.find('[data-id="field-notes"]').val(t.notes||"");const A=l.find('[data-id="documents"]');d.length===0?A.append($("<li>").text("No documents.")):d.forEach(v=>{const C=g.copyTemplate("document-item");C.find('[data-id="link"]').attr("href",v.url||"#").text(v.fileName||"Document"),C.find('[data-id="meta"]').text(v.contentType||""),A.append(C)});const S=l.find('[data-id="audit-section"]');if(c.length===0)S.prop("hidden",!0);else{S.prop("hidden",!1);const v=l.find('[data-id="audit"]');c.slice(0,10).forEach(C=>{const I=g.copyTemplate("audit-item");I.find('[data-id="when"]').text(new Date(C.createdAt).toLocaleString()),I.find('[data-id="actor"]').text(C.actor||"system"),I.find('[data-id="action"]').text(C.action||""),v.append(I)})}l.find('[data-id="cancel"]').on("click",()=>{h(t.id)}),l.find('[data-id="form"]').on("submit",async v=>{v.preventDefault();const C={credentialType:l.find('[data-id="field-type"]').val()?.trim()||null,issuingAuthority:l.find('[data-id="field-issuer"]').val()?.trim()||null,identifier:l.find('[data-id="field-identifier"]').val()?.trim()||null,issuedAt:l.find('[data-id="field-issued"]').val()||null,expiresAt:l.find('[data-id="field-expires"]').val()||null,notes:l.find('[data-id="field-notes"]').val()||null},I=l.find('[data-id="form-status"]');I.text("Saving\u2026");try{await i.credentials.update(t.id,C),I.text("Saved."),E("Credential updated","success"),window.dispatchEvent(new CustomEvent("credential:updated",{detail:{id:t.id}})),await r()}catch(Se){I.text("Save failed."),E(Se?.responseJSON?.message||"Save failed","error")}}),a.find('[data-id="detail-host"]').empty().append(l)}}typeof window<"u"&&(window.createCredentials=ue);const me=2e3,we=new Set(["READY","FAILED"]);function he({$holder:e,api:i,pollIntervalMs:a}){const o=a||me,p=g.copyTemplate("ingest-shell");e.empty().append(p);const u=p.find('[data-id="dropzone"]'),w=p.find('[data-id="file-input"]'),s=p.find('[data-id="status-strip"]'),r=p.find('[data-id="status-text"]'),f=p.find('[data-id="review-host"]');w.on("change",async t=>{const d=t.target.files?.[0];d&&await m(d)}),u.on("dragover",t=>{t.preventDefault(),u.addClass("drag-over")}),u.on("dragleave",()=>u.removeClass("drag-over")),u.on("drop",async t=>{t.preventDefault(),u.removeClass("drag-over");const d=t.originalEvent?.dataTransfer?.files?.[0];d&&await m(d)});async function m(t){f.empty(),s.prop("hidden",!1),r.text(`Uploading ${t.name}\u2026`);try{const{batchId:d}=await i.ingest.upload(t);await h(d)}catch(d){r.text("Upload failed."),E(d?.responseJSON?.message||"Upload failed","error")}}async function h(t){for(;;){const d=await i.ingest.status(t);if(r.text(`Status: ${d.status}`),we.has(d.status)){if(d.status==="FAILED"){E(d.error||"Extraction failed","error");return}n(d.items||[]);return}await ge(o)}}function n(t){if(f.empty(),t.length===0){f.append($("<div>").addClass("empty-state").text("No items to review."));return}t.forEach(d=>{const c=$("<div>").addClass("ingest-review-slot");f.append(c),M({$holder:c,extracted:d.extracted,existing:d.existing,documentText:d.documentText,confidence:d.confidence,onConfirm:async l=>{try{await i.ingest.confirm(d.itemId,l),c.empty().append($("<div>").addClass("ingest-done").text("Confirmed.")),window.dispatchEvent(new CustomEvent("credential:created",{detail:{itemId:d.itemId}}))}catch(y){E(y?.responseJSON?.message||"Confirm failed","error")}},onReject:async l=>{try{await i.ingest.reject(d.itemId,l),c.empty().append($("<div>").addClass("ingest-done").text("Rejected."))}catch(y){E(y?.responseJSON?.message||"Reject failed","error")}}})})}}function ge(e){return new Promise(i=>setTimeout(i,e))}typeof window<"u"&&(window.createIngest=he);const ye=350;async function ve({$holder:e,api:i}){const a=g.copyTemplate("audit-shell");e.empty().append(a);const o={cursor:null,filters:{actor:"",action:"",from:"",to:""}},p=a.find('[data-id="rows"]'),u=a.find('[data-id="load-more"]'),w=a.find('[data-id="empty"]');u.on("click",()=>f(!1));let s=null;a.find('[data-id="filter-actor"]').on("input",function(){const m=$(this).val();clearTimeout(s),s=setTimeout(()=>{o.filters.actor=m,r()},ye)}),[["filter-action","action"],["filter-from","from"],["filter-to","to"]].forEach(([m,h])=>{a.find(`[data-id="${m}"]`).on("change",function(){o.filters[h]=$(this).val(),r()})}),await f(!0);async function r(){o.cursor=null,p.empty(),await f(!0)}async function f(m){const h={...o.filters,limit:50};!m&&o.cursor&&(h.cursor=o.cursor);const n=await i.audit.list(h);(n.items||[]).forEach(t=>{const d=g.copyTemplate("audit-row");d.find('[data-id="when"]').text(new Date(t.createdAt).toLocaleString()),d.find('[data-id="actor"]').text(t.actor||"system"),d.find('[data-id="action"]').text(t.action||""),d.find('[data-id="credential"]').text(t.credentialId??""),d.find('[data-id="detail"]').text(t.detail||""),p.append(d)}),o.cursor=n.nextCursor||null,u.prop("hidden",!o.cursor),w.prop("hidden",p.children().length>0)}}typeof window<"u"&&(window.createAudit=ve);async function $e({$holder:e,api:i}){const a=g.copyTemplate("locations-shell");e.empty().append(a),await Promise.all([o("locations"),o("providers")]),a.find('[data-id="add-location"]').on("click",()=>w("locations",null)),a.find('[data-id="add-provider"]').on("click",()=>w("providers",null));async function o(s){const r=a.find(`[data-id="${s}-list"]`);r.empty(),((await i[s].list({limit:200})).items||[]).forEach(m=>{const h=g.copyTemplate("locations-row"),n=m.name||`#${m.id}`;h.find('[data-id="name"]').text(n).on("click",()=>p(s,m.id)),h.find('[data-id="delete"]').on("click",async t=>{t.stopPropagation();const d=s==="locations"?"location":"provider";if(window.confirm(`Delete ${d} "${n}"? This cannot be undone.`))try{await i[s].remove(m.id),E("Deleted","success"),await o(s),u()}catch(c){E(c?.responseJSON?.message||"Delete failed","error")}}),r.append(h)})}async function p(s,r){const f=await i[s].get(r);w(s,f)}function u(){a.find('[data-id="detail-host"]').empty().append($("<div>").addClass("empty-state").text("Select a location or provider to edit, or add a new one."))}function w(s,r){const f=g.copyTemplate("locations-form"),m=r==null,h=s==="locations"?"location":"provider";f.find('[data-id="form-title"]').text(`${m?"New":"Edit"} ${h}`),r&&(f.find('[data-id="field-name"]').val(r.name||""),f.find('[data-id="field-external-id"]').val(r.externalId||"")),f.on("submit",async n=>{n.preventDefault();const t={name:f.find('[data-id="field-name"]').val()?.trim()||"",externalId:f.find('[data-id="field-external-id"]').val()?.trim()||null},d=f.find('[data-id="form-status"]');d.text("Saving\u2026");try{m?await i[s].create(t):await i[s].update(r.id,t),d.text("Saved."),E("Saved","success"),await o(s)}catch(c){d.text("Save failed."),E(c?.responseJSON?.message||"Save failed","error")}}),a.find('[data-id="detail-host"]').empty().append(f)}}typeof window<"u"&&(window.createLocationsAndProviders=$e);const Ee=$("#login-view"),xe=$("#app-view"),T={dashboard:$("#dashboard-view"),credentials:$("#credentials-view"),audit:$("#audit-view"),locations:$("#locations-view"),ingest:$("#ingest-view")},b=ie(),D=ae({api:b,$form:$("#login-form"),$error:$("#login-error")}),z={};function H(e){Object.entries(T).forEach(([i,a])=>{i===e?a.removeAttr("hidden").show():a.hide()}),Ce(e)}function Ce(e){if(!z[e])switch(z[e]=!0,e){case"dashboard":typeof window.createDashboard=="function"&&window.createDashboard({$holder:T.dashboard,api:b});break;case"credentials":typeof window.createCredentials=="function"&&window.createCredentials({$holder:T.credentials,api:b});break;case"audit":typeof window.createAudit=="function"&&window.createAudit({$holder:T.audit,api:b});break;case"locations":typeof window.createLocationsAndProviders=="function"&&window.createLocationsAndProviders({$holder:T.locations,api:b});break;case"ingest":typeof window.createIngest=="function"&&window.createIngest({$holder:T.ingest,api:b});break}}function J(e){Ee.hide(),xe.removeAttr("hidden").show(),oe({$holder:$("#sidebar"),displayName:e,onViewChange:H,onLogout:()=>{D.logout(),location.reload()}}),H("dashboard")}window.addEventListener("auth:expired",()=>{D.logout(),location.reload()}),D.getStoredToken()?J(D.getDisplayName()):D.onLoginSuccess(e=>J(e))})();
+
+  </script>
 </body>
 </html>
