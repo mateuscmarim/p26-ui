@@ -10,6 +10,6 @@
   var settings = window.settings || (window.settings = {});
 
   if (settings.apiBase == null) {
-    settings.apiBase = "";
+    settings.apiBase = "https://www.p26-intelligence.com";
   }
 })();

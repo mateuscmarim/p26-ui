@@ -38,4 +38,3 @@ copies the result into the Spring static folder.
 Vitest + jsdom. Tests live in `tests/` and exercise pure logic
 (`format.js`), the `$.ajax`-mocked API client (`api.js`), the auth flow
 (`auth.js`), and the SideBySideReview component (`components.js`).
-# p26-ui
