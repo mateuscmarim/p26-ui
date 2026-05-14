@@ -23,7 +23,7 @@ export function createIngest({ $holder, api, pollIntervalMs }) {
       providersCache = result.items || [];
     } catch (err) {
       providersCache = [];
-      showToast("Could not load CareStack providers", "error");
+      showToast("Could not load providers", "error");
     }
     return providersCache;
   }

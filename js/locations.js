@@ -51,7 +51,7 @@ export async function createLocationsAndProviders({ $holder, api }) {
     // Block any submit (e.g. Enter inside an input) just in case.
     $form.on("submit", (event) => {
       event.preventDefault();
-      showToast("Read-only — sourced from CareStack ETL", "info");
+      showToast("Read-only — managed externally", "info");
     });
     $shell.find('[data-id="detail-host"]').empty().append($form);
   }

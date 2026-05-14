@@ -208,7 +208,7 @@
                 <option value="">Select a provider…</option>
               </select>
               <span class="diff-flag" data-id="diff-provider" hidden>changed</span>
-              <span class="hint" data-id="provider-hint" hidden>Provider must already exist in CareStack.</span>
+              <span class="hint" data-id="provider-hint" hidden>Provider must already exist in the system.</span>
             </label>
             <label>Credential type
               <input type="text" data-id="field-type" />
@@ -299,16 +299,16 @@
     <div data-id="locations-shell">
       <header class="view-header">
         <h2>Locations &amp; Providers</h2>
-        <span class="read-only-banner" data-id="read-only-banner">Read-only — sourced from CareStack ETL</span>
+        <span class="read-only-banner" data-id="read-only-banner">Read-only — managed externally</span>
       </header>
       <div class="locations-body">
         <aside class="locations-list">
           <h3>Locations
-            <button class="btn-link" data-id="add-location" disabled title="Read-only — sourced from CareStack ETL">+ Add</button>
+            <button class="btn-link" data-id="add-location" disabled title="Read-only — managed externally">+ Add</button>
           </h3>
           <ul data-id="locations-list"></ul>
           <h3>Providers
-            <button class="btn-link" data-id="add-provider" disabled title="Read-only — sourced from CareStack ETL">+ Add</button>
+            <button class="btn-link" data-id="add-provider" disabled title="Read-only — managed externally">+ Add</button>
           </h3>
           <ul data-id="providers-list"></ul>
         </aside>
@@ -319,14 +319,14 @@
     </div>
     <li data-id="locations-row" class="locations-row">
       <button class="locations-row-name" data-id="name"></button>
-      <button class="locations-row-delete" data-id="delete" title="Read-only — sourced from CareStack ETL" disabled>×</button>
+      <button class="locations-row-delete" data-id="delete" title="Read-only — managed externally" disabled>×</button>
     </li>
     <form data-id="locations-form" class="locations-form">
       <h3 data-id="form-title"></h3>
       <label>Name <input type="text" data-id="field-name" readonly /></label>
       <label>External ID <input type="text" data-id="field-external-id" readonly /></label>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" data-id="save" disabled title="Read-only — sourced from CareStack ETL">Save</button>
+        <button type="submit" class="btn btn-primary" data-id="save" disabled title="Read-only — managed externally">Save</button>
         <span class="form-status" data-id="form-status"></span>
       </div>
     </form>
