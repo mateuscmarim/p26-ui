@@ -953,6 +953,13 @@ button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 14px;
 }
 
+.credentials-list > .empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
 .empty-state-message { font-size: 14px; color: var(--text-secondary); }
 
 .modal-backdrop {
