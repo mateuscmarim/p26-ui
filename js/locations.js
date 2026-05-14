@@ -1,14 +1,20 @@
 import { TemplateUtil } from "./util.js";
 import { showToast } from "./components.js";
 
+/**
+ * Read-only Locations & Providers view. Add/edit/delete controls are kept
+ * visible but disabled — the data is sourced from the CareStack ETL.
+ */
 export async function createLocationsAndProviders({ $holder, api }) {
   const $shell = TemplateUtil.copyTemplate("locations-shell");
   $holder.empty().append($shell);
 
   await Promise.all([refreshList("locations"), refreshList("providers")]);
 
-  $shell.find('[data-id="add-location"]').on("click", () => renderForm("locations", null));
-  $shell.find('[data-id="add-provider"]').on("click", () => renderForm("providers", null));
+  // Add buttons are disabled in markup, but guard against any future
+  // re-enable accidentally wiring a create flow.
+  $shell.find('[data-id="add-location"]').on("click", (event) => event.preventDefault());
+  $shell.find('[data-id="add-provider"]').on("click", (event) => event.preventDefault());
 
   async function refreshList(kind) {
     const $list = $shell.find(`[data-id="${kind}-list"]`);
@@ -18,18 +24,11 @@ export async function createLocationsAndProviders({ $holder, api }) {
       const $row = TemplateUtil.copyTemplate("locations-row");
       const label = entry.name || `#${entry.id}`;
       $row.find('[data-id="name"]').text(label).on("click", () => loadDetail(kind, entry.id));
-      $row.find('[data-id="delete"]').on("click", async (event) => {
+      // Delete is disabled in markup; keep a no-op handler so any stray
+      // event doesn't bubble up to the row's click handler.
+      $row.find('[data-id="delete"]').on("click", (event) => {
+        event.preventDefault();
         event.stopPropagation();
-        const noun = kind === "locations" ? "location" : "provider";
-        if (!window.confirm(`Delete ${noun} "${label}"? This cannot be undone.`)) return;
-        try {
-          await api[kind].remove(entry.id);
-          showToast("Deleted", "success");
-          await refreshList(kind);
-          resetDetail();
-        } catch (err) {
-          showToast(err?.responseJSON?.message || "Delete failed", "error");
-        }
       });
       $list.append($row);
     });
@@ -40,42 +39,19 @@ export async function createLocationsAndProviders({ $holder, api }) {
     renderForm(kind, entry);
   }
 
-  function resetDetail() {
-    $shell.find('[data-id="detail-host"]').empty().append(
-      $("<div>").addClass("empty-state").text("Select a location or provider to edit, or add a new one."),
-    );
-  }
-
   function renderForm(kind, entry) {
     const $form = TemplateUtil.copyTemplate("locations-form");
-    const isNew = entry == null;
     const label = kind === "locations" ? "location" : "provider";
-    $form.find('[data-id="form-title"]').text(`${isNew ? "New" : "Edit"} ${label}`);
+    $form.find('[data-id="form-title"]').text(`View ${label}`);
     if (entry) {
       $form.find('[data-id="field-name"]').val(entry.name || "");
       $form.find('[data-id="field-external-id"]').val(entry.externalId || "");
     }
-    $form.on("submit", async (event) => {
+    // Form fields are readonly and the save button is disabled in markup.
+    // Block any submit (e.g. Enter inside an input) just in case.
+    $form.on("submit", (event) => {
       event.preventDefault();
-      const payload = {
-        name: $form.find('[data-id="field-name"]').val()?.trim() || "",
-        externalId: $form.find('[data-id="field-external-id"]').val()?.trim() || null,
-      };
-      const $status = $form.find('[data-id="form-status"]');
-      $status.text("Saving…");
-      try {
-        if (isNew) {
-          await api[kind].create(payload);
-        } else {
-          await api[kind].update(entry.id, payload);
-        }
-        $status.text("Saved.");
-        showToast("Saved", "success");
-        await refreshList(kind);
-      } catch (err) {
-        $status.text("Save failed.");
-        showToast(err?.responseJSON?.message || "Save failed", "error");
-      }
+      showToast("Read-only — sourced from CareStack ETL", "info");
     });
     $shell.find('[data-id="detail-host"]').empty().append($form);
   }

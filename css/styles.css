@@ -274,6 +274,38 @@ button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .view-header h2 { margin: 0; }
 
+.read-only-banner {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg, #eef2ff);
+  color: var(--text-secondary, #475569);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.btn-link[disabled],
+.btn-link:disabled,
+.locations-row-delete[disabled],
+.locations-row-delete:disabled,
+.btn[disabled],
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+.btn-link[disabled]:hover,
+.btn-link:disabled:hover { background: transparent; }
+.locations-row-delete[disabled]:hover,
+.locations-row-delete:disabled:hover { background: transparent; color: inherit; }
+
+.locations-form input[readonly] {
+  background: var(--bg-muted, #f8fafc);
+  color: var(--text-secondary, #475569);
+  cursor: default;
+}
+
 /* ── Filters row ────────────────────────────────────────── */
 .filters {
   display: flex;

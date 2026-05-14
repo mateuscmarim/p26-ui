@@ -296,33 +296,34 @@
     <div data-id="locations-shell">
       <header class="view-header">
         <h2>Locations &amp; Providers</h2>
+        <span class="read-only-banner" data-id="read-only-banner">Read-only — sourced from CareStack ETL</span>
       </header>
       <div class="locations-body">
         <aside class="locations-list">
           <h3>Locations
-            <button class="btn-link" data-id="add-location">+ Add</button>
+            <button class="btn-link" data-id="add-location" disabled title="Read-only — sourced from CareStack ETL">+ Add</button>
           </h3>
           <ul data-id="locations-list"></ul>
           <h3>Providers
-            <button class="btn-link" data-id="add-provider">+ Add</button>
+            <button class="btn-link" data-id="add-provider" disabled title="Read-only — sourced from CareStack ETL">+ Add</button>
           </h3>
           <ul data-id="providers-list"></ul>
         </aside>
         <section class="locations-detail" data-id="detail-host">
-          <div class="empty-state">Select a location or provider to edit, or add a new one.</div>
+          <div class="empty-state">Select a location or provider to view details.</div>
         </section>
       </div>
     </div>
     <li data-id="locations-row" class="locations-row">
       <button class="locations-row-name" data-id="name"></button>
-      <button class="locations-row-delete" data-id="delete" title="Delete">×</button>
+      <button class="locations-row-delete" data-id="delete" title="Read-only — sourced from CareStack ETL" disabled>×</button>
     </li>
     <form data-id="locations-form" class="locations-form">
       <h3 data-id="form-title"></h3>
-      <label>Name <input type="text" data-id="field-name" /></label>
-      <label>External ID <input type="text" data-id="field-external-id" /></label>
+      <label>Name <input type="text" data-id="field-name" readonly /></label>
+      <label>External ID <input type="text" data-id="field-external-id" readonly /></label>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" data-id="save">Save</button>
+        <button type="submit" class="btn btn-primary" data-id="save" disabled title="Read-only — sourced from CareStack ETL">Save</button>
         <span class="form-status" data-id="form-status"></span>
       </div>
     </form>
