@@ -15,6 +15,19 @@ export function createIngest({ $holder, api, pollIntervalMs }) {
   const $statusText = $shell.find('[data-id="status-text"]');
   const $reviewHost = $shell.find('[data-id="review-host"]');
 
+  let providersCache = null;
+  async function loadProviders() {
+    if (providersCache) return providersCache;
+    try {
+      const result = await api.providers.list({ limit: 500 });
+      providersCache = result.items || [];
+    } catch (err) {
+      providersCache = [];
+      showToast("Could not load CareStack providers", "error");
+    }
+    return providersCache;
+  }
+
   $input.on("change", async (event) => {
     const file = event.target.files?.[0];
     if (file) await handleFile(file);
@@ -54,19 +67,20 @@ export function createIngest({ $holder, api, pollIntervalMs }) {
           showToast(result.error || "Extraction failed", "error");
           return;
         }
-        renderItems(result.items || []);
+        await renderItems(result.items || []);
         return;
       }
       await sleep(intervalMs);
     }
   }
 
-  function renderItems(items) {
+  async function renderItems(items) {
     $reviewHost.empty();
     if (items.length === 0) {
       $reviewHost.append($("<div>").addClass("empty-state").text("No items to review."));
       return;
     }
+    const providers = await loadProviders();
     items.forEach((item) => {
       const $slot = $("<div>").addClass("ingest-review-slot");
       $reviewHost.append($slot);
@@ -76,6 +90,7 @@ export function createIngest({ $holder, api, pollIntervalMs }) {
         existing: item.existing,
         documentText: item.documentText,
         confidence: item.confidence,
+        providers,
         onConfirm: async (record) => {
           try {
             await api.ingest.confirm(item.itemId, record);

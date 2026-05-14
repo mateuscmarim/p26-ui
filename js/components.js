@@ -63,6 +63,7 @@ export function createSideBySideReview({
   existing,
   documentText,
   confidence,
+  providers,
   onConfirm,
   onReject,
 }) {
@@ -73,13 +74,29 @@ export function createSideBySideReview({
   }
   $shell.find('[data-id="source-text"]').text(documentText || "");
 
+  const $providerField = $shell.find('[data-id="field-provider"]');
+  (providers || []).forEach((p) => {
+    const name = p.providerName || p.name;
+    if (!name) return;
+    $providerField.append($("<option>").attr("value", name).text(name));
+  });
+  const extractedProvider = extracted?.providerName;
+  const matched = matchProvider(extractedProvider, providers || []);
+  $shell.find('[data-id="provider-hint"]')
+    .prop("hidden", !extractedProvider || !!matched);
+
   REVIEW_FIELDS.forEach(([slug, key]) => {
-    const value = extracted?.[key];
+    const value = slug === "provider"
+      ? (matched || extractedProvider)
+      : extracted?.[key];
     if (value != null) $shell.find(`[data-id="field-${slug}"]`).val(value);
     if (existing && existing[key] != null && existing[key] !== value) {
       $shell.find(`[data-id="diff-${slug}"]`).prop("hidden", false);
     }
   });
+  if (extractedProvider && matched && matched !== extractedProvider) {
+    $shell.find('[data-id="diff-provider"]').prop("hidden", false);
+  }
 
   $shell.find('[data-id="confirm"]').on("click", () => {
     const record = {};
@@ -97,6 +114,32 @@ export function createSideBySideReview({
 
   $holder.empty().append($shell);
   return { $shell };
+}
+
+/**
+ * Pick the canonical provider name that best matches the extracted holder
+ * name. Tries: exact (case-insensitive) → punctuation-stripped equality →
+ * last-token (surname) overlap. Returns null if nothing reasonable matches.
+ */
+function matchProvider(extracted, providers) {
+  if (!extracted || !providers.length) return null;
+  const names = providers.map((p) => p.providerName || p.name).filter(Boolean);
+  const norm = (s) => s.toLowerCase().replace(/[.,]/g, "").replace(/\s+/g, " ").trim();
+  const target = norm(extracted);
+  const exact = names.find((n) => norm(n) === target);
+  if (exact) return exact;
+  const targetTokens = new Set(target.split(" ").filter((t) => t.length > 1));
+  let best = null;
+  let bestScore = 0;
+  names.forEach((n) => {
+    const tokens = norm(n).split(" ").filter((t) => t.length > 1);
+    const overlap = tokens.filter((t) => targetTokens.has(t)).length;
+    if (overlap > bestScore) {
+      bestScore = overlap;
+      best = n;
+    }
+  });
+  return bestScore >= 2 ? best : null;
 }
 
 if (typeof window !== "undefined") {

@@ -204,8 +204,11 @@
           <h4>Fields</h4>
           <form data-id="form" class="review-form">
             <label>Provider
-              <input type="text" data-id="field-provider" />
+              <select data-id="field-provider">
+                <option value="">Select a provider…</option>
+              </select>
               <span class="diff-flag" data-id="diff-provider" hidden>changed</span>
+              <span class="hint" data-id="provider-hint" hidden>Provider must already exist in CareStack.</span>
             </label>
             <label>Credential type
               <input type="text" data-id="field-type" />
